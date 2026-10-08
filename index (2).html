@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculate the break-even point for your business.">
+  <title>Liedson website | Break-Even Calculator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #65718a;
+      --blue: #3157d5;
+      --blue-dark: #2342b2;
+      --line: #e1e7f0;
+      --panel: #ffffff;
+      --background: #f4f7fc;
+      --green: #137a55;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--background);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(120deg, #1e326b, #3157d5);
+      color: white;
+      padding: 22px 20px;
+      box-shadow: 0 4px 18px rgba(20, 35, 80, .14);
+    }
+    .header-inner, main, footer { width: min(100% - 32px, 980px); margin: 0 auto; }
+    header h1 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.9rem); letter-spacing: -.03em; }
+    header p { margin: 4px 0 0; color: #dce5ff; font-size: .95rem; }
+    main { padding: 34px 0 42px; }
+    .intro { margin-bottom: 22px; }
+    .intro h2 { margin: 0 0 6px; font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.035em; }
+    .intro p { margin: 0; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .92fr); gap: 22px; align-items: start; }
+    .card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+      padding: clamp(20px, 4vw, 28px); box-shadow: 0 10px 30px rgba(24, 43, 85, .045);
+    }
+    .card h3 { margin: 0 0 5px; font-size: 1.12rem; }
+    .subtext { margin: 0 0 22px; color: var(--muted); font-size: .92rem; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-weight: 650; font-size: .94rem; margin-bottom: 7px; }
+    .hint { display: block; color: var(--muted); font-weight: 400; font-size: .82rem; margin-top: 3px; }
+    .input-wrap { display: flex; align-items: center; border: 1px solid #cbd5e4; border-radius: 10px; overflow: hidden; background: #fff; }
+    .input-wrap:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(49, 87, 213, .13); }
+    .prefix { padding: 11px 12px; background: #f7f9fd; border-right: 1px solid var(--line); color: var(--muted); }
+    input[type="number"] { width: 100%; min-width: 0; border: 0; outline: 0; padding: 12px; color: var(--ink); font: inherit; background: transparent; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+    button { border: 0; border-radius: 10px; padding: 12px 17px; font: inherit; font-weight: 700; cursor: pointer; transition: background .15s, transform .15s; }
+    button:active { transform: translateY(1px); }
+    .primary { color: white; background: var(--blue); flex: 1; }
+    .primary:hover { background: var(--blue-dark); }
+    .secondary { background: #edf1f8; color: #273653; }
+    .secondary:hover { background: #e2e8f2; }
+    .result-card { background: linear-gradient(155deg, #fff, #f7f9ff); }
+    .result-label { margin: 0; color: var(--muted); font-size: .9rem; font-weight: 650; }
+    .big-number { font-size: clamp(2.5rem, 7vw, 4rem); line-height: 1.1; letter-spacing: -.055em; font-weight: 800; color: var(--blue); margin: 8px 0 5px; overflow-wrap: anywhere; }
+    .result-note { margin: 0 0 24px; color: var(--muted); font-size: .9rem; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+    .stat span { display: block; color: var(--muted); font-size: .82rem; margin-bottom: 5px; }
+    .stat strong { font-size: 1.12rem; overflow-wrap: anywhere; }
+    .formula { margin-top: 20px; padding: 15px; background: #f0f4ff; border-radius: 12px; color: #263c7a; font-size: .9rem; }
+    .formula strong { display: block; margin-bottom: 4px; }
+    .message { display: none; margin-top: 14px; border-radius: 10px; padding: 11px 13px; font-size: .9rem; }
+    .message.error { display: block; color: var(--red); background: #fff0ef; border: 1px solid #ffd2cf; }
+    .message.success { display: block; color: var(--green); background: #eaf8f1; border: 1px solid #c2ebd5; }
+    footer { padding: 0 0 24px; text-align: center; color: var(--muted); font-size: .83rem; }
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+      main { padding-top: 25px; }
+      .result-card { order: -1; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 380px) {
+      .header-inner, main, footer { width: min(100% - 22px, 980px); }
+      .card { padding: 17px; }
+      .stats { grid-template-columns: 1fr; }
+      .actions button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Liedson website</h1>
+      <p>A simple business break-even calculator</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h2>Break-Even Point Calculator</h2>
+      <p>Enter your costs and selling price to find how many units you need to sell to cover your costs.</p>
+    </section>
+
+    <div class="layout">
+      <section class="card" aria-labelledby="inputs-title">
+        <h3 id="inputs-title">Enter your numbers</h3>
+        <p class="subtext">Use the same currency for all money amounts.</p>
+        <form id="breakEvenForm" novalidate>
+          <div class="field">
+            <label for="fixedCost">Total fixed cost <span class="hint">Costs that do not change with the number of units</span></label>
+            <div class="input-wrap"><span class="prefix" aria-hidden="true">$</span><input id="fixedCost" name="fixedCost" type="number" min="0" step="any" placeholder="e.g. 5000" inputmode="decimal" required></div>
+          </div>
+          <div class="field">
+            <label for="variableCost">Variable cost per unit <span class="hint">Cost to make or provide one unit</span></label>
+            <div class="input-wrap"><span class="prefix" aria-hidden="true">$</span><input id="variableCost" name="variableCost" type="number" min="0" step="any" placeholder="e.g. 12.50" inputmode="decimal" required></div>
+          </div>
+          <div class="field">
+            <label for="sellingPrice">Selling price per unit</label>
+            <div class="input-wrap"><span class="prefix" aria-hidden="true">$</span><input id="sellingPrice" name="sellingPrice" type="number" min="0" step="any" placeholder="e.g. 25" inputmode="decimal" required></div>
+          </div>
+          <div class="actions">
+            <button class="primary" type="submit">Calculate break-even</button>
+            <button class="secondary" type="reset">Clear</button>
+          </div>
+          <div id="message" class="message" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="card result-card" aria-labelledby="results-title">
+        <h3 id="results-title">Your result</h3>
+        <p class="result-label">Units needed to break even</p>
+        <div class="big-number" id="unitsResult">—</div>
+        <p class="result-note" id="resultNote">Enter your numbers and select Calculate break-even.</p>
+        <div class="stats">
+          <div class="stat"><span>Contribution per unit</span><strong id="contributionResult">—</strong></div>
+          <div class="stat"><span>Break-even sales revenue</span><strong id="revenueResult">—</strong></div>
+        </div>
+        <div class="formula">
+          <strong>Formula</strong>
+          Break-even units = Fixed costs ÷ (Selling price per unit − Variable cost per unit)
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>Break-even units are rounded up to the next whole unit so costs are fully covered.</footer>
+
+  <script>
+    const form = document.getElementById('breakEvenForm');
+    const fixedInput = document.getElementById('fixedCost');
+    const variableInput = document.getElementById('variableCost');
+    const priceInput = document.getElementById('sellingPrice');
+    const message = document.getElementById('message');
+
+    const money = (amount) => new Intl.NumberFormat('en-US', {
+      style: 'currency', currency: 'USD', maximumFractionDigits: 2
+    }).format(amount);
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = 'message ' + type;
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const fixed = Number(fixedInput.value);
+      const variable = Number(variableInput.value);
+      const price = Number(priceInput.value);
+
+      if ([fixedInput, variableInput, priceInput].some(input => input.value.trim() === '')) {
+        showMessage('Please enter all three values.', 'error');
+        return;
+      }
+      if (![fixed, variable, price].every(Number.isFinite) || fixed < 0 || variable < 0 || price < 0) {
+        showMessage('Enter valid numbers that are zero or greater.', 'error');
+        return;
+      }
+
+      const contribution = price - variable;
+      if (contribution <= 0) {
+        document.getElementById('unitsResult').textContent = 'N/A';
+        document.getElementById('contributionResult').textContent = money(contribution);
+        document.getElementById('revenueResult').textContent = 'N/A';
+        document.getElementById('resultNote').textContent = 'The selling price must be greater than the variable cost per unit to break even.';
+        showMessage('Your selling price must be higher than your variable cost per unit.', 'error');
+        return;
+      }
+
+      const units = Math.ceil(fixed / contribution);
+      const revenue = units * price;
+      document.getElementById('unitsResult').textContent = units.toLocaleString('en-US');
+      document.getElementById('contributionResult').textContent = money(contribution);
+      document.getElementById('revenueResult').textContent = money(revenue);
+      document.getElementById('resultNote').textContent = `You need to sell at least ${units.toLocaleString('en-US')} unit${units === 1 ? '' : 's'} to cover your fixed and variable costs.`;
+      showMessage('Break-even point calculated successfully.', 'success');
+    });
+
+    form.addEventListener('reset', () => {
+      document.getElementById('unitsResult').textContent = '—';
+      document.getElementById('contributionResult').textContent = '—';
+      document.getElementById('revenueResult').textContent = '—';
+      document.getElementById('resultNote').textContent = 'Enter your numbers and select Calculate break-even.';
+      message.textContent = '';
+      message.className = 'message';
+    });
+  </script>
+</body>
+</html>
